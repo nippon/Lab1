@@ -11,7 +11,6 @@ namespace Lab1
     {
         static void Main(string[] args)
         {
-            //HALLÅ ELLER
             // när exit sätts till true skall programmet avslutas.
             bool exit = false;
             // input används för att hålla input från användaren.
