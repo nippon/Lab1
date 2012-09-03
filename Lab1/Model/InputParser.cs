@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Lab1.Helpers;
+using Lab1.Model.Repository.Abstract;
+using Lab1.Model.Repository;
 
 namespace Lab1.Model
 {
@@ -11,60 +13,29 @@ namespace Lab1.Model
     /// </summary>
     public class InputParser
     {
-        /// <summary>
-        /// ParserState används för att hålla reda på vilket tillstånd InputParser-objektet
-        /// befinner sig i. 
-        /// 
-        /// Anledningen till att vi har olika tillstånd är för att veta vilka kommandon som skall finnas 
-        /// tillgängliga för användaren.
-        /// 
-        /// Ett tillstånd skulle kunna vara att användaren har listat Users och därmed har tillgång
-        /// till kommandon för att lista detaljer för en User. Ett annat tillstånd skulle kunna vara 
-        /// att användaren håller på och lägger in en ny User och därmed har tillgång till kommandon
-        /// för att sätta namn, etc, för användaren.
-        /// 
-        /// Som koden ser ut nu så finns endast två tillgängliga tillstånd, 1, som är Default State.
-        /// Och -1 som är det tillståndet som InputParser går in i när programmet skall avslutas
-        /// Ifall nya tillstånd implementeras skulle de kunna vara 2, 3, 4, etc.
-        /// </summary>
-        private int ParserState { get; set; }
+       
+        private enum State 
+        { 
+            Exit, Default 
+        }
+        private IRepository Repo;
+        State ParserState = State.Default;
+        private Logger LogList = new Logger();
+        private bool IsUserAuthenticated = false;
 
-        /// <summary>
-        /// Sätter ParserState till Default
-        /// </summary>
-        public void SetDefaultParserState()
+        public InputParser( IRepository Repo ) 
         {
-            ParserState = 1;
+            this.Repo = Repo;
         }
 
-        /// <summary>
-        /// Returnerar en int som motsvarar Default State
-        /// </summary>
-        private int DefaultParserState
-        {
-            get
-            {
-                return 1;
-            }
-        }
+        
 
         /// <summary>
         /// Sätter ParserState till Exit
         /// </summary>
         private void SetExitParserState()
         {
-            ParserState = -1;
-        }
-
-        /// <summary>
-        /// Returnerar en int som motsvarar Exit State
-        /// </summary>
-        private int ExitParserState
-        {
-            get
-            {
-                return -1;
-            }
+            ParserState = State.Exit;
         }
 
         /// <summary>
@@ -74,10 +45,18 @@ namespace Lab1.Model
         {
             get
             {
-                return ParserState == ExitParserState;
+                return ParserState == State.Exit;
             }
         }
-
+        public string ListUsers( List<User> users )
+        {
+            string result = "";
+            foreach ( var user in users )
+            {
+                result += user.ToString() + "\n";
+            }
+            return result;
+        }
         /// <summary>
         /// Tolka input baserat på vilket tillstånd (ParserState) InputParser-objektet befinner sig i.
         /// </summary>
@@ -85,18 +64,21 @@ namespace Lab1.Model
         /// <returns></returns>
         public string ParseInput(string input)
         {
-            if (ParserState == DefaultParserState)
+           
+            input = input.ToLower();
+            LogList.Log( input );
+            if (ParserState == State.Default)
             {
                 return ParseDefaultStateInput(input);
             }
-            else if (ParserState == ExitParserState)
+            else if (ParserState == State.Exit)
             {
                 // Do nothing - program should exit
                 return "";
             }
             else
             {
-                SetDefaultParserState();
+                
                 return OutputHelper.ErrorLostState;
             }
         }
@@ -111,6 +93,42 @@ namespace Lab1.Model
             string result;
             switch (input)
             {
+                case "login admin":
+                    if (!IsUserAuthenticated)
+                    {
+                        IsUserAuthenticated = true;
+                        result = "You have been logged in as admin.";
+                        break;
+                    }
+                    else 
+                    {
+                        result = "You are already logged in as admin.";
+                    }
+                    break;
+                case "logout":
+                    if (IsUserAuthenticated)
+                    {
+                        IsUserAuthenticated = false;
+                        result = "You have been logged out.";
+                        break;
+                    }
+                    else
+                    {
+                        result = "You are not logged in.";
+                    }
+                    break;
+                case "list":
+                    result = ListUsers( Repo.GetUsers().Take(10).ToList() );
+                    break;
+                case "dictionary":
+                    result = "ICollection<KeyValuePair<TKey, TValue>>";
+                    break;
+                case "interface": 
+                    result = OutputHelper.InterfaceMessage;
+                    break;
+                case "log":
+                    result = LogList.ToString();
+                    break;
                 case "?": // Inget break; eller return; => ramlar igenom till nästa case (dvs. ?/help hanteras likadant)
                 case "help":
                     result = OutputHelper.RootCommandList;
@@ -124,6 +142,6 @@ namespace Lab1.Model
                     break;
             }
             return result + OutputHelper.EnterCommand;
-        }
+        }  
     }
 }

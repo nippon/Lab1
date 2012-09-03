@@ -18,8 +18,14 @@ namespace Lab1.Helpers
             get
             {
                 string returnString = "\n\nList of Commands:";
-                returnString += "\n\t?/help:\tPrints this list of commands.";
-                returnString += "\n\texit:\tExits the program.";
+                returnString += "\n\tlist:\t\tLists users.";
+                returnString += "\n\tdictionary:\tdisplays an interface for dictionary.";
+                returnString += "\n\tinterface:\tdisplays an interface.";
+                returnString += "\n\tlog:\t\tLogs the input.";
+                returnString += "\n\tlogin admin:\tLogin admin.";
+                returnString += "\n\tlogout:\t\tLogout admin.";
+                returnString += "\n\t?/help:\t\tPrints this list of commands.";
+                returnString += "\n\texit:\t\tExits the program.";
 
                 return returnString;
             }
@@ -72,12 +78,23 @@ namespace Lab1.Helpers
         /// <summary>
         /// Property som innehåller ett välkomstmeddelande
         /// </summary>
-        private static string GreetingMessage
+        public static string GreetingMessage
         {
             get
             {
                 return string.Format("\n\nWelcome! {0}", EnterCommand);
             }
+        }
+        public static string InterfaceMessage
+        {
+            get
+            {
+                return string.Format("\n\nInterface is used with a semicolon after the class name e.g. class Classname : IInterface");
+            }
+        }
+        public static void Put(string s) 
+        {
+            Console.WriteLine( s );
         }
     }
 }
